@@ -3,6 +3,7 @@ const cors = require("cors");
 const { connection } = require("./Config/db");
 const { UserRouter } = require("./router/UserRouter");
 const { Authentication } = require("./middlewares/Authentication");
+const { TaskRouter } = require("./router/TaskRouter");
 
 
 
@@ -16,6 +17,8 @@ app.use(
 
 app.use(express.json());
 app.use("/user", UserRouter);
+app.use("/task",TaskRouter)
+// app.use("/task",Authentication,TaskRouter)
 
 app.get("/", (req, res) => {
   res.send("this is base api");

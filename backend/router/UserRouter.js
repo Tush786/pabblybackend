@@ -1,9 +1,8 @@
 const express = require("express");
-const jwt=require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const bcrypt = require("bcrypt");
 const { UserModel } = require("../models/UserModel");
-
 
 const UserRouter = express.Router();
 UserRouter.get("/", async (req, res) => {
@@ -16,12 +15,9 @@ UserRouter.get("/", async (req, res) => {
   }
 });
 
-
 UserRouter.get("/:_id", async (req, res) => {
   try {
-    const {
-      _id
-    } = req.params;
+    const { _id } = req.params;
     const user = await UserModel.find({
       _id,
     });
@@ -34,12 +30,7 @@ UserRouter.get("/:_id", async (req, res) => {
 
 UserRouter.post("/addUser", async (req, res) => {
   try {
-    const {
-      username,
-      email,
-      password,
-   
-    } = req.body;
+    const { username, email, password } = req.body;
 
     const user_present = await UserModel.findOne({
       email,
@@ -53,7 +44,6 @@ UserRouter.post("/addUser", async (req, res) => {
           username,
           email,
           password: hash,
-          
         });
         await new_user.save();
         res.status(200).send({
@@ -70,41 +60,50 @@ UserRouter.post("/addUser", async (req, res) => {
 // <-------------- Login ------------>
 UserRouter.post("/login", async (req, res) => {
   try {
-    const {email} = req.body
+    const { email } = req.body;
     let user_present = await UserModel.findOne({
       email,
     });
-console.log(user_present)
+    console.log(user_present);
     if (req.body.gauth) {
-      console.log(req.body)
+      console.log(req.body);
       if (!user_present) {
-          const {username,profilePic} = req.body
-          user_present = await new UserModel({
-            username,
-            email,
-            profilePic,
-          });
-          await user_present.save();
+        const { email, username, profilePic } = req.body;
+        user_present = await new UserModel({
+          username,
+          email,
+        });
+        await user_present.save();
       }
+      const token = jwt.sign(
+        { userId: user_present._id },
+        process.env.SECRET_KEY
+      );
       res.status(201).send({
         user: user_present,
-        msg: "Google Login Successfull"
+        msg: "Google Login Successfull",
+        token,
+        user_present,
       });
     } else {
       if (!user_present) {
         res.status(409).send("Email Does not exist!");
       } else if (user_present) {
         const hash_pass = await user_present.password;
-        bcrypt.compare(req.body.password, hash_pass, function(err, result) {
-        
-          if(result){
-              const token = jwt.sign({ userId: user_present._id }, process.env.SECRET_KEY);
-           console.log(token)
-              res.status(200).send({"message":"Login successfully", token})
-          }else{
-              res.status(410).send("Login failed, invalid credentials")
+        bcrypt.compare(req.body.password, hash_pass, function (err, result) {
+          if (result) {
+            const token = jwt.sign(
+              { userId: user_present._id },
+              process.env.SECRET_KEY
+            );
+            console.log(token);
+            res
+              .status(200)
+              .send({ message: "Login successfully", token, user_present });
+          } else {
+            res.status(410).send("Login failed, invalid credentials");
           }
-      });
+        });
       }
     }
   } catch (error) {
@@ -120,7 +119,7 @@ UserRouter.patch("/editUser/:id", async (req, res) => {
     });
     res.status(200).send({
       msg: "User Updated Successfully",
-      user: currUser
+      user: currUser,
     });
   } catch (error) {
     console.log(error);
