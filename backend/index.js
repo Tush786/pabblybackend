@@ -17,8 +17,8 @@ app.use(
 
 app.use(express.json());
 app.use("/user", UserRouter);
-app.use("/task",TaskRouter)
-// app.use("/task",Authentication,TaskRouter)
+// app.use("/task",TaskRouter)
+app.use("/task",Authentication,TaskRouter)
 
 app.get("/", (req, res) => {
   res.send("this is base api");
